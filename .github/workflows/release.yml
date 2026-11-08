@@ -2,6 +2,12 @@ name: Release
 on:
   push:
     tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Stable release tag matching pyproject.toml
+        required: true
+        default: v0.2.0
 permissions:
   contents: read
 jobs:
@@ -9,6 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.metadata.outputs.version }}
+      tag: ${{ steps.metadata.outputs.tag }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -18,8 +25,10 @@ jobs:
           python-version: '3.13'
       - id: metadata
         env:
-          RELEASE_TAG: ${{ github.ref_name }}
-        run: python scripts/release_info.py --tag "$RELEASE_TAG" --github-output "$GITHUB_OUTPUT"
+          RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+        run: |
+          python scripts/release_info.py --tag "$RELEASE_TAG" --github-output "$GITHUB_OUTPUT"
+          echo "tag=$RELEASE_TAG" >> "$GITHUB_OUTPUT"
   verify:
     needs: validate
     uses: ./.github/workflows/test.yml
@@ -37,11 +46,24 @@ jobs:
           python-version: '3.13'
       - run: python -m pip install '.[build]'
       - run: python scripts/audit_repository.py && python scripts/build_release.py
+      - name: Create the verified tag for a manual release
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ needs.validate.outputs.tag }}
+        run: |
+          if TAG_SHA=$(gh api "repos/$GH_REPO/git/ref/tags/$RELEASE_TAG" --jq '.object.sha' 2>/dev/null); then
+            test "$TAG_SHA" = "$GITHUB_SHA"
+          else
+            gh api --method POST "repos/$GH_REPO/git/refs" \
+              -f "ref=refs/tags/$RELEASE_TAG" -f "sha=$GITHUB_SHA"
+          fi
       - name: Publish tested tag with all four assets
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
-          RELEASE_TAG: ${{ github.ref_name }}
+          RELEASE_TAG: ${{ needs.validate.outputs.tag }}
           VERSION: ${{ needs.validate.outputs.version }}
         run: |
           cd "dist/$VERSION"

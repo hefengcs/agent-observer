@@ -25,6 +25,8 @@ git push -u origin main
 
 ## 发布 v0.2.0
 
+也可在 GitHub Actions → Release → Run workflow 输入固定 Tag（如 v0.2.0）。完整测试通过后，工作流才创建对应 Tag 并发布；已有 Tag 指向不同提交时拒绝覆盖。无需在开发机器保存 GitHub Token。
+
 1. pyproject.toml 和 src/agent_observer/__init__.py 的版本一致，提交并等 CI 全绿。
 2. 本地运行下列校验并创建固定 Tag：
 

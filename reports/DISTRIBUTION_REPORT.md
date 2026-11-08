@@ -2,7 +2,7 @@
 
 ## 本地仓库
 
-当前目录已初始化独立 Git 仓库，分支 main。源码、文档、测试、工作流和安装辅助脚本已准备进入索引；维护者已确认正式仓库 https://github.com/hefengcs/agent-observer；远程为空且当前身份具有写入权限。正在执行首次推送与远程 CI，结果以 Actions 链接为准。
+当前目录已初始化独立 Git 仓库，分支 main。源码、文档、测试、工作流和安装辅助脚本已准备进入索引；维护者已确认正式仓库 https://github.com/hefengcs/agent-observer；远程为空且当前身份具有写入权限。首次源码上传已完成；本地 main 与正式仓库一致。
 
 公开源码隐私审计通过；默认项目白名单为空。虚拟环境、生成的 synthetic 项目、个人 Session/JSONL、本地配置、数据库、日志和包含机器路径的测试输出被忽略。发行构建仅从经审计的 Git 索引文件复制源文件，不把工作区其他文件夹直接打包。测试中只有明确的假凭据，没有个人历史或真实项目数据。
 
@@ -22,8 +22,8 @@ CI 对每次 Push / Pull Request 运行 macOS / Ubuntu × Python 3.11 / 3.13，�
 
 vX.Y.Z Tag 发布先验证版本一致，再等待完整矩阵，通过后生成 wheel、sdist、独立 Bundle 与 SHA256SUMS。Release 先 draft 上传完整资产，再公开发布。只有 publish job 使用 contents:write。默认安装不跟随 main。
 
-## 实际尚未执行
+## 远程验证
 
-正式仓库已确认；首次远程 CI 和 Release 的最终状态可在 https://github.com/hefengcs/agent-observer/actions 与 Releases 查看。当地 macOS 测试不代表 Ubuntu runner 的实际结果。
+首轮远程 CI 四组全部成功：https://github.com/hefengcs/agent-observer/actions/runs/42443664619 。Ubuntu/macOS 的 Python 3.11/3.13 均执行测试、构建、固定 Tag 安装、升级卸载和 Bundle 安装。Release 另有完整矩阵验证，状态在 Actions 与 Releases 页面查看。
 
 本轮没有变更 Personal Feishu MCP、现有 Tunnel 或 Observer 核心只读权限。OversightHarness 仍不是硬编码依赖；实际项目的端到端验收等待目标机器部署。

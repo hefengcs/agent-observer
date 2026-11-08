@@ -102,7 +102,7 @@ PYTHON=python3 ./scripts/dev_setup.sh
 
 生成器只在测试目录建立合成项目、Git、日志、配置和两种历史，不修改默认配置。pytest 使用独立临时目录。测试先跑本地读取和隔离，再启动临时 HTTP 协议服务器。安装验收在源码外新建非 editable venv，调用安装后的启动脚本验证全部 12 个工具、两种历史与项目隔离。
 
-[测试报告](reports/TEST_REPORT.md) 区分 macOS 的实际结果和 Linux 尚未执行的运行验证。CI 已提供 Ubuntu/macOS、Python 3.11/3.13 的测试与打包安装矩阵；本次未提交到远程运行 CI。
+[测试报告](reports/TEST_REPORT.md) 记录本地验证。正式仓库的首轮 [GitHub CI](https://github.com/hefengcs/agent-observer/actions/runs/42443664619) 已在 Ubuntu/macOS、Python 3.11/3.13 四组全部通过，包含测试、构建和安装生命周期。
 
 安装包不包含真实项目或个人历史，不包含开发机虚拟环境。精确依赖记录 `requirements.lock.txt` 供参考，跨平台默认按 pyproject 约束解析当地可安装的依赖。
 

@@ -1,0 +1,17 @@
+# Example for the DEPLOYMENT machine only. Replace all paths there.
+# Do not combine `projects = []` with [[projects]]: replace the empty declaration.
+
+[[projects]]
+project_id = "example_project"
+project_name = "Example Project"
+absolute_path = "/srv/projects/example-project"
+description = "Project authorized by this deployment's administrator"
+enabled = true
+
+[history]
+codex_root = "/srv/agent-history/codex/sessions"
+claude_root = "/srv/agent-history/claude/projects"
+
+[http]
+host = "127.0.0.1"
+port = 8765

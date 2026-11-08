@@ -1,0 +1,15 @@
+[Unit]
+Description=Read-only Project Agent Observer MCP
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=%h/.local/share/agent-observer/bin/run_http.sh
+Environment=AGENT_OBSERVER_CONFIG=%h/.config/agent_observer/config.toml
+Restart=on-failure
+RestartSec=3
+UMask=0077
+NoNewPrivileges=true
+
+[Install]
+WantedBy=default.target

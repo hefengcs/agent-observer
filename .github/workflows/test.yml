@@ -1,0 +1,56 @@
+name: CI
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+  workflow_call:
+permissions:
+  contents: read
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        python: ['3.11', '3.13']
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install test and build dependencies
+        run: python -m pip install -e '.[dev,build]'
+      - name: Audit public source and scripts
+        run: |
+          python scripts/audit_repository.py
+          ruff check src tests scripts
+          ruff format --check src tests scripts
+          for script in scripts/*.sh; do sh -n "$script"; done
+          shellcheck scripts/*.sh
+      - name: Local tests before HTTP tests
+        run: python -m pytest -q -m 'not transport' --junitxml=reports/pytest-local.xml
+      - name: Real stdio and loopback HTTP tools
+        run: python -m pytest -q -m transport --junitxml=reports/pytest-transport.xml
+      - name: Build wheel, sdist, bundle and checksums
+        id: package
+        run: |
+          python scripts/release_info.py --github-output "$GITHUB_OUTPUT"
+          python scripts/build_release.py
+      - name: Test install from tagged Git clone, upgrade and uninstall
+        run: python scripts/verify_repository_install.py
+      - name: Test deployment bundle installation
+        env:
+          VERSION: ${{ steps.package.outputs.version }}
+        run: python scripts/verify_install.py --bundle "dist/$VERSION/agent-observer-$VERSION-bundle.tar.gz"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: validation-${{ matrix.os }}-py${{ matrix.python }}
+          path: |
+            reports/*.xml
+            reports/*install.json
+          if-no-files-found: warn

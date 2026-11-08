@@ -1,0 +1,54 @@
+name: Release
+on:
+  push:
+    tags: ['v*']
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.metadata.outputs.version }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.13'
+      - id: metadata
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: python scripts/release_info.py --tag "$RELEASE_TAG" --github-output "$GITHUB_OUTPUT"
+  verify:
+    needs: validate
+    uses: ./.github/workflows/test.yml
+  publish:
+    needs: [validate, verify]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.13'
+      - run: python -m pip install '.[build]'
+      - run: python scripts/audit_repository.py && python scripts/build_release.py
+      - name: Publish tested tag with all four assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+          VERSION: ${{ needs.validate.outputs.version }}
+        run: |
+          cd "dist/$VERSION"
+          sha256sum -c SHA256SUMS
+          gh release create "$RELEASE_TAG" \
+            "agent_observer-$VERSION-py3-none-any.whl" \
+            "agent_observer-$VERSION.tar.gz" \
+            "agent-observer-$VERSION-bundle.tar.gz" SHA256SUMS \
+            --verify-tag --generate-notes --draft --title "Agent Observer $VERSION"
+          gh release edit "$RELEASE_TAG" --draft=false --latest

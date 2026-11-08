@@ -1,0 +1,21 @@
+# No real project is authorized by default. Register paths on the deployment host.
+projects = []
+
+[http]
+host = "127.0.0.1"
+port = 8765
+allowed_hosts = []
+allowed_origins = []
+
+[history]
+# These stores are read only for sessions matching an explicitly registered project.
+codex_root = "~/.codex/sessions"
+claude_root = "~/.claude/projects"
+
+[limits]
+max_file_bytes = 2000000
+max_session_bytes = 256000000
+max_jsonl_line_bytes = 4000000
+max_output_chars = 24000
+max_files = 20000
+max_history_files = 20000

@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agent-observer"
+version = "0.2.0"
+description = "Project-scoped read-only MCP access to files, Git and Coding Agent history"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = ["mcp>=1.30,<2", "pydantic>=2.11,<3"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8,<10", "pytest-asyncio>=1,<2", "httpx>=0.28,<1", "ruff>=0.14,<1", "shellcheck-py>=0.11,<0.12"]
+build = ["build>=1.2,<2"]
+
+[project.scripts]
+agent-observer = "agent_observer.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+agent_observer = ["templates/*.toml"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+addopts = "-m 'not transport'"
+markers = ["transport: real stdio and loopback HTTP protocol tests; run after local suite"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 110
+extend-exclude = ["tests/.generated"]
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I"]
